@@ -19,10 +19,56 @@
 module Top
 (
 	input clk,
+	
+	output reg dat,
 
 	// debug	
 	output [4:0] led
 );
+
+	// ws2812 driver
+	reg [23:0] testdat = 24'hFF22FD;
+	reg [9:0] rstcnt = 0;
+	reg [3:0] symcnt = 0;
+	reg [4:0] bitcnt = 0;
+	reg [1:0] state = 0;
+	
+	always @(posedge clk)
+	begin
+		case(state)
+			0: begin
+				if (rstcnt == 10'b1111111111) begin
+					rstcnt <= 0;
+					bitcnt <= 23;
+					state <= 1;
+					dat <= 1;
+				end else begin
+					rstcnt <= rstcnt + 1;
+					dat <= 0;
+				end
+			end
+			
+			1: begin
+				if((testdat[bitcnt] && (symcnt == 10)) ||
+					(!testdat[bitcnt] && (symcnt == 5)))
+				begin
+					dat <= 0;
+				end
+			
+				if (symcnt == 15) begin
+					symcnt <= 0;
+					if (bitcnt == 0) begin
+						state <= 0;
+					end else begin
+						bitcnt <= bitcnt - 1;
+						dat <= 1;
+					end
+				end else begin
+					symcnt <= symcnt + 1;
+				end
+			end
+		endcase
+	end
 
 	// debug
 	reg [24:0] cnt = 0;

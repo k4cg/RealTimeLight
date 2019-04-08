@@ -80,7 +80,7 @@ module test;
 
 		repeat(10) @(posedge clk);
 		//usart_send(8'h31);
-		repeat(100) @(posedge clk);
+		repeat(10000) @(posedge clk);
 
 		$display("done");
 		$finish;
