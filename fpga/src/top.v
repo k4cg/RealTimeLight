@@ -19,29 +19,113 @@
 module Top
 (
 	input clk,
+
+	output uart_tx,
+	input uart_rx,
+	input uart_rts,
+	output uart_cts,
 	
-	output reg dat,
+	output ndat,
 
 	// debug	
-	output [4:0] led
+	output [4:0] led,
+	output reg debug
 );
 
+
+	// UART
+	reg [7:0] dataSend = 8'h00;
+	reg dataSendCmd = 0;
+	reg dataSendValid = 0;
+	wire dataSendValid_b;
+	wire dataSendAck;
+	wire [7:0] dataRecv;
+	wire dataRecvCmd;
+	wire dataRecvValid;
+	reg dataRecvAck = 0;
+	reg dataRecvThrottle = 0;
+
+	Uart u0 (
+		.clk(clk),
+		.rx(uart_rx),
+		.cts(uart_cts),
+		.tx(uart_tx),
+		.rts(uart_rts),
+		.dataSend(dataSend),
+		.dataSendCmd(dataSendCmd),
+		.dataSendValid(dataSendValid_b),
+		.dataSendAck(dataSendAck),
+		.dataRecv(dataRecv),
+		.dataRecvCmd(dataRecvCmd),
+		.dataRecvValid(dataRecvValid),
+		.dataRecvAck(dataRecvAck),
+		.dataRecvThrottle(dataRecvThrottle)
+	);
+	
+	// buffer
+	reg [7:0] mem [31:0];
+	reg [4:0] memW = 0;
+	reg [4:0] memR = 0;
+	reg [4:0] memBufLen = 0;
+	reg next = 1;
+	reg nextBak = 0;
+	reg [7:0] nextDat = 0;
+	reg nextDatValid = 0;
+	
+	// state machine
+	always @(posedge clk)
+	begin
+		debug <= 0;
+		dataRecvAck <= 1;
+		if(dataRecvValid) begin
+			if(next) begin
+				nextBak <= 1;
+			end
+			mem[memW] = dataRecv;
+			memW <= memW + 1;
+			memBufLen <= memBufLen + 1;
+			dataRecvAck <= 1;
+		end else if((next || nextBak) && (memBufLen > 0)) begin
+			nextDat <= mem[memR];
+			nextDatValid <= 1;
+			memR <= memR + 1;
+			memBufLen <= memBufLen - 1;
+			nextBak <= 0;
+		end else if(next || nextBak) begin
+			nextDatValid <= 0;
+			nextBak <= 1;
+		end
+		
+		if(memBufLen > 20) begin
+			dataRecvThrottle <= 1;
+		end else if (memBufLen < 10) begin
+			dataRecvThrottle <= 0;
+		end
+
+	end
+
 	// ws2812 driver
-	reg [23:0] testdat = 24'hFF22FD;
+	reg [23:0] testdat = 24'hFF22FD; // GGRRBB
 	reg [9:0] rstcnt = 0;
 	reg [3:0] symcnt = 0;
 	reg [4:0] bitcnt = 0;
 	reg [1:0] state = 0;
 	
+	reg dat = 0;
+	
 	always @(posedge clk)
 	begin
+		next <= 0;
+		
 		case(state)
 			0: begin
 				if (rstcnt == 10'b1111111111) begin
-					rstcnt <= 0;
-					bitcnt <= 23;
-					state <= 1;
-					dat <= 1;
+					if(nextDatValid) begin
+						rstcnt <= 0;
+						bitcnt <= 7;
+						state <= 1;
+						dat <= 1;
+					end
 				end else begin
 					rstcnt <= rstcnt + 1;
 					dat <= 0;
@@ -49,8 +133,8 @@ module Top
 			end
 			
 			1: begin
-				if((testdat[bitcnt] && (symcnt == 10)) ||
-					(!testdat[bitcnt] && (symcnt == 5)))
+				if((nextDat[bitcnt] && (symcnt == 10)) ||
+					(!nextDat[bitcnt] && (symcnt == 5)))
 				begin
 					dat <= 0;
 				end
@@ -58,17 +142,27 @@ module Top
 				if (symcnt == 15) begin
 					symcnt <= 0;
 					if (bitcnt == 0) begin
-						state <= 0;
+						if(!nextDatValid) begin
+							state <= 0;
+						end else begin
+							bitcnt <= 7;
+							dat <= 1;
+						end
 					end else begin
 						bitcnt <= bitcnt - 1;
 						dat <= 1;
 					end
 				end else begin
+					if((bitcnt == 0) && (symcnt == 12)) begin
+						next <= 1;
+					end
 					symcnt <= symcnt + 1;
 				end
 			end
 		endcase
 	end
+	
+	assign ndat = !dat;
 
 	// debug
 	reg [24:0] cnt = 0;

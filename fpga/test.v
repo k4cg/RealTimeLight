@@ -21,13 +21,15 @@
 
 module test;
 
-	localparam baud_delay = 1000;
+	localparam baud_delay = 500;
 
 	reg clk = 0;
 	wire [4:0] led;
 	
 	reg tx = 1;
 	wire rx;
+	reg rts = 0;
+	wire cts;
 	
 	// clock
 	initial
@@ -38,7 +40,11 @@ module test;
 	// uut
 	Top uut (
 		.clk(clk),
-		.led(led)
+		.led(led),
+		.uart_rx(tx),
+		.uart_tx(rx),
+		.uart_rts(rts),
+		.uart_cts(cts)
 	);
 
 	task usart_send (
@@ -46,6 +52,7 @@ module test;
 	);
 		integer i;
 		begin
+			wait(cts == 0);
 			tx <= 0;
 			#baud_delay;
 			for (i = 0; i < 8; i=i+1) begin
@@ -72,14 +79,21 @@ module test;
 	endtask
 
 	// test procedure
+	integer k;
 	initial
 	begin
 		$dumpfile("dump.lx2");
 		$dumpvars;
 		$display("start");
 
-		repeat(10) @(posedge clk);
-		//usart_send(8'h31);
+		repeat(1000) @(posedge clk);
+		for(k = 0; k < 3; k=k+1) begin
+			usart_send(k);
+		end
+		#1000000;
+		for(k = 0; k < 3; k=k+1) begin
+			usart_send(k);
+		end
 		repeat(10000) @(posedge clk);
 
 		$display("done");

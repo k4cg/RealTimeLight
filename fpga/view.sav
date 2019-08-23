@@ -1,26 +1,47 @@
 [*]
-[*] GTKWave Analyzer v3.3.79 (w)1999-2017 BSI
-[*] Mon Apr  8 21:22:00 2019
+[*] GTKWave Analyzer v3.3.98 (w)1999-2019 BSI
+[*] Fri Aug 23 10:52:46 2019
 [*]
 [dumpfile] "/home/cc/daten/Projekte/k4cg/git/RealTimeLight/fpga/dump.lx2"
-[dumpfile_mtime] "Mon Apr  8 21:21:30 2019"
-[dumpfile_size] 94744
+[dumpfile_mtime] "Fri Aug 23 10:52:37 2019"
+[dumpfile_size] 230776
 [savefile] "/home/cc/daten/Projekte/k4cg/git/RealTimeLight/fpga/view.sav"
-[timestart] 52900000
-[size] 1000 600
+[timestart] 74360000
+[size] 1253 639
 [pos] -1 -1
-*-24.481821 89628000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-23.481821 89292000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] test.
+[treeopen] test.uut.
 [sst_width] 220
-[signals_width] 102
+[signals_width] 158
 [sst_expanded] 1
-[sst_vpaned_height] 147
+[sst_vpaned_height] 160
 @22
 test.uut.led[4:0]
 test.uut.cnt[24:0]
 @28
 test.uut.clk[0]
-@29
+@22
+test.uut.symcnt[3:0]
+@28
+test.uut.state[1:0]
+@23
+test.uut.bitcnt[4:0]
+@28
 test.uut.dat[0]
+test.uut.ndat[0]
+test.uut.uart_rx[0]
+test.uut.uart_cts[0]
+test.uut.dataRecvValid[0]
+test.uut.u0.dataRecvAck[0]
+test.uut.debug[0]
+test.uut.u0.rxNext[0]
+test.uut.u0.rxState[1:0]
+test.uut.next[0]
+test.uut.nextDatValid[0]
+@22
+test.uut.nextDat[7:0]
+test.uut.memBufLen[4:0]
+test.uut.rstcnt[9:0]
 [pattern_trace] 1
 [pattern_trace] 0
