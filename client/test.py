@@ -1,10 +1,12 @@
 #!/usr/bin/python3
 
+import sys
 import serial
 import time
 import numpy as np
 
-s = serial.Serial('/dev/ttyUSB0', 2000000, timeout=.5, rtscts=1)
+port = sys.argv[1]
+s = serial.Serial(port, 2000000, timeout=.5, rtscts=1)
 N = 92
 dat = [0]*3*N
 T = 0.01
