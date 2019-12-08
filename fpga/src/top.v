@@ -162,7 +162,7 @@ module Top
 		endcase
 	end
 	
-	assign ndat = !dat;
+	assign ndat = dat;
 
 	// debug
 	reg [24:0] cnt = 0;
